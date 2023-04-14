@@ -14,7 +14,7 @@
 
 .KEEP_STATE:
 
-all: seq omp mpi
+all: seq omp mpi cuda
 
 ENABLE_PNETCDF = no
 PNETCDF_DIR    = $(HOME)/PnetCDF
@@ -122,9 +122,31 @@ seq: seq_main
 seq_main: $(SEQ_OBJ) $(H_FILES)
 	$(CC) $(LDFLAGS) -o $@ $(SEQ_OBJ) $(LIBS)
 
+#------   cuda version -----------------------------------------
+CUDA_SRC     = cuda_main.c   \
+              cuda_kmeans.c \
+	      wtime.c
+
+CUDA_OBJ     = $(CUDA_SRC:%.c=%.o) $(COMM_SRC:%.c=%.o)
+
+$(CUDA_OBJ): $(H_FILES)
+
+cuda_main.o: cuda_main.c $(H_FILES)
+	$(CC) $(CFLAGS) -c $*.c
+
+cuda_kmeans.o: cuda_kmeans.c $(H_FILES)
+	$(CC) $(CFLAGS) -c $*.c
+
+wtime.o: wtime.c
+	$(CC) $(CFLAGS) -c $*.c
+
+cuda: cuda_main
+cuda_main: $(CUDA_OBJ) $(H_FILES)
+	$(CC) $(LDFLAGS) -o $@ $(CUDA_OBJ) $(LIBS)
+
 IMAGE_FILES =   color100.txt   color17695.bin   color17695.nc \
                  edge100.txt    edge17695.bin    edge17695.nc \
-              texture100.txt texture17695.bin texture17695.nc
+              texture100.txt texture17695.bin texture17695.nc \ colorLarge.txt
 
 INPUTS = $(IMAGE_FILES:%=Image_data/%)
 
