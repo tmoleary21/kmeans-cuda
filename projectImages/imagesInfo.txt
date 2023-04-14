@@ -1,0 +1,4 @@
+intelTool.png:
+ran with -o -n 5000 -i image_data/colorBig.txt
+color big has 29400 data points, ran with 5000 clusters
+computation time 12.2741
