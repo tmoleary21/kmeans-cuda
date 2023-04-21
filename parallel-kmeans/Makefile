@@ -14,7 +14,7 @@
 
 .KEEP_STATE:
 
-all: seq omp mpi cuda
+all: seq omp mpi omp_new
 
 ENABLE_PNETCDF = no
 PNETCDF_DIR    = $(HOME)/PnetCDF
@@ -122,27 +122,25 @@ seq: seq_main
 seq_main: $(SEQ_OBJ) $(H_FILES)
 	$(CC) $(LDFLAGS) -o $@ $(SEQ_OBJ) $(LIBS)
 
-#------   cuda version -----------------------------------------
-CUDA_SRC     = cuda_main.c   \
-              cuda_kmeans.c \
-	      wtime.c
+#------   OpenMP NEW version -----------------------------------------
+OMP_NEW_SRC     = omp_new_main.c \
+	      omp_new_kmeans.c
 
-CUDA_OBJ     = $(CUDA_SRC:%.c=%.o) $(COMM_SRC:%.c=%.o)
+OMP_NEW_OBJ     = $(OMP_NEW_SRC:%.c=%.o) $(COMM_SRC:%.c=%.o)
 
-$(CUDA_OBJ): $(H_FILES)
+ifeq ($(ENABLE_PNETCDF), yes)
+OMP_NEW_OBJ    += pnetcdf_io.o
+endif
 
-cuda_main.o: cuda_main.c $(H_FILES)
-	$(CC) $(CFLAGS) -c $*.c
+omp_new_main.o: omp_new_main.c $(H_FILES)
+	$(OMPCC) $(CFLAGS) $(OMPFLAGS) -c $*.c
 
-cuda_kmeans.o: cuda_kmeans.c $(H_FILES)
-	$(CC) $(CFLAGS) -c $*.c
+omp_new_kmeans.o: omp_new_kmeans.c $(H_FILES)
+	$(OMPCC) $(CFLAGS) $(OMPFLAGS) -c $*.c
 
-wtime.o: wtime.c
-	$(CC) $(CFLAGS) -c $*.c
-
-cuda: cuda_main
-cuda_main: $(CUDA_OBJ) $(H_FILES)
-	$(CC) $(LDFLAGS) -o $@ $(CUDA_OBJ) $(LIBS)
+omp_new: omp_new_main
+omp_new_main: $(OMP_OBJ)
+	$(OMPCC) $(LDFLAGS) $(OMPFLAGS) -o $@ $(OMP_OBJ) $(LIBS)
 
 IMAGE_FILES =   color100.txt   color17695.bin   color17695.nc \
                  edge100.txt    edge17695.bin    edge17695.nc \
