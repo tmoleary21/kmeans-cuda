@@ -140,7 +140,7 @@ omp_new_kmeans.o: omp_new_kmeans.c $(H_FILES)
 
 omp_new: omp_new_main
 omp_new_main: $(OMP_NEW_OBJ)
-	$(OMPCC) $(LDFLAGS) $(OMPFLAGS) -o $@ $(OMP_NEW_OBJ) $(LIBS)
+	$(OMPCC) $(LDFLAGS) $(OMPFLAGS) -o $@ $(OMP_NEW_OBJ) $(LIBS) file_io.o util.o
 
 IMAGE_FILES =   color100.txt   color17695.bin   color17695.nc \
                  edge100.txt    edge17695.bin    edge17695.nc \
