@@ -126,7 +126,7 @@ seq_main: $(SEQ_OBJ) $(H_FILES)
 OMP_NEW_SRC     = omp_new_main.c \
 	      omp_new_kmeans.c
 
-OMP_NEW_OBJ     = $(OMP_NEW_SRC:%.c=%.o) $(COMM_SRC:%.c=%.o)
+OMP_NEW_OBJ     = omp_new_main.o omp_new_kmeans.o
 
 ifeq ($(ENABLE_PNETCDF), yes)
 OMP_NEW_OBJ    += pnetcdf_io.o
@@ -139,8 +139,8 @@ omp_new_kmeans.o: omp_new_kmeans.c $(H_FILES)
 	$(OMPCC) $(CFLAGS) $(OMPFLAGS) -c $*.c
 
 omp_new: omp_new_main
-omp_new_main: $(OMP_OBJ)
-	$(OMPCC) $(LDFLAGS) $(OMPFLAGS) -o $@ $(OMP_OBJ) $(LIBS)
+omp_new_main: $(OMP_NEW_OBJ)
+	$(OMPCC) $(LDFLAGS) $(OMPFLAGS) -o $@ $(OMP_NEW_OBJ) $(LIBS)
 
 IMAGE_FILES =   color100.txt   color17695.bin   color17695.nc \
                  edge100.txt    edge17695.bin    edge17695.nc \

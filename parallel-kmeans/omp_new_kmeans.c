@@ -208,6 +208,7 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
         }
 
         /* average the sum and replace old cluster centers with newClusters */
+        #pragma omp parallel for private(j)
         for (i=0; i<numClusters; i++) {
             for (j=0; j<numCoords; j++) {
                 if (newClusterSize[i] > 1)
