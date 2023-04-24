@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 #include <omp.h>
+#include <limits.h>
 #include "kmeans.h"
 
 
@@ -140,6 +141,7 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
         delta = 0.0;
 
         if (is_perform_atomic) {
+            float* distArray = (float*)calloc(numClusters, sizeof(float));
             #pragma omp parallel for \
                     private(i,j,index) \
                     firstprivate(numObjs,numClusters,numCoords) \
@@ -148,8 +150,44 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
                     reduction(+:delta)
             for (i=0; i<numObjs; i++) {
                 /* find the array index of nestest cluster center */
-                index = find_nearest_cluster(numClusters, numCoords, objects[i],
-                                             clusters);
+                // index = find_nearest_cluster(numClusters, numCoords, objects[i], clusters);
+                float min_dist;
+
+                /* find the cluster id that has min distance to object */
+                index    = 0;
+                min_dist = INT_MAX;
+
+                // for (int j=0; j<numClusters; j++) {
+                //     // dist = euclid_dist_2(numCoords, objects[i], clusters[j]);
+                //     dist = 0.0;
+                //     for (int k=0; k<numCoords; k++)
+                //         dist += (objects[i][k]-clusters[j][k]) * (objects[i][k]-clusters[j][k]);
+
+                //     /* no need square root */
+                //     if (dist < min_dist) { /* find the min and its array index */
+                //         min_dist = dist;
+                //         index    = j;
+                //     }
+                // }
+                // float* distArray = (float*)calloc(numClusters, sizeof(float));
+                for (int k=0; k<numCoords; k++) {
+                    // dist = euclid_dist_2(numCoords, objects[i], clusters[j]);
+                    // dist = 0.0;
+
+                    for (int j=0; j<numClusters; j++){
+                        if (k == 0){
+                            distArray[j] = (objects[i][k]-clusters[j][k]) * (objects[i][k]-clusters[j][k]);
+                        } else {
+                            distArray[j] += (objects[i][k]-clusters[j][k]) * (objects[i][k]-clusters[j][k]);
+                        }
+                        /* no need square root */
+                        if (k == numCoords-1 && distArray[j] < min_dist) { /* find the min and its array index */
+                            min_dist = distArray[j];
+                            index    = j;
+                        }
+                    }
+                }
+
 
                 /* if membership changes, increase delta by 1 */
                 if (membership[i] != index) delta += 1.0;
@@ -164,6 +202,7 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
                     #pragma omp atomic
                     newClusters[index][j] += objects[i][j];
             }
+            free(distArray);
         }
         else {
             #pragma omp parallel \

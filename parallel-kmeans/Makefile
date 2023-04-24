@@ -24,7 +24,7 @@ OMPCC          = gcc
 MPICC          = mpicc
 
 INCFLAGS    = -I.
-OPTFLAGS    = -O2 -DNDEBUG
+OPTFLAGS    = -O3 -DNDEBUG
 LDFLAGS     = $(OPTFLAGS)
 
 ifeq ($(ENABLE_PNETCDF), yes)
@@ -133,14 +133,14 @@ OMP_NEW_OBJ    += pnetcdf_io.o
 endif
 
 omp_new_main.o: omp_new_main.c $(H_FILES)
-	$(OMPCC) $(CFLAGS) $(OMPFLAGS) -c $*.c
+	icc $(CFLAGS) -qopenmp -c $*.c
 
 omp_new_kmeans.o: omp_new_kmeans.c $(H_FILES)
-	$(OMPCC) $(CFLAGS) $(OMPFLAGS) -c $*.c
+	icc $(CFLAGS) -qopenmp -c $*.c
 
 omp_new: omp_new_main
 omp_new_main: $(OMP_NEW_OBJ)
-	$(OMPCC) $(LDFLAGS) $(OMPFLAGS) -o $@ $(OMP_NEW_OBJ) $(LIBS) file_io.o util.o
+	icc $(LDFLAGS) -qopenmp -o $@ $(OMP_NEW_OBJ) $(LIBS) file_io.o util.o
 
 IMAGE_FILES =   color100.txt   color17695.bin   color17695.nc \
                  edge100.txt    edge17695.bin    edge17695.nc \
