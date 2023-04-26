@@ -187,7 +187,7 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
                         }
                     }
                 }
-
+                // free(distArray);
 
                 /* if membership changes, increase delta by 1 */
                 if (membership[i] != index) delta += 1.0;
