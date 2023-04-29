@@ -14,7 +14,7 @@
 
 .KEEP_STATE:
 
-all: seq omp mpi omp_new
+all: seq omp mpi omp_new omp_new_gcc
 
 ENABLE_PNETCDF = no
 PNETCDF_DIR    = $(HOME)/PnetCDF
@@ -141,6 +141,26 @@ omp_new_kmeans.o: omp_new_kmeans.c $(H_FILES)
 omp_new: omp_new_main
 omp_new_main: $(OMP_NEW_OBJ)
 	icc $(LDFLAGS) -qopenmp -o $@ $(OMP_NEW_OBJ) $(LIBS) file_io.o util.o
+
+#------   OpenMP NEW GCC version -----------------------------------------
+OMP_NEW_SRC_GCC     = omp_new_main.c \
+	      omp_new_kmeans.c
+
+OMP_NEW_OBJ_GCC     = omp_new_main_gcc.o omp_new_kmeans_gcc.o
+
+ifeq ($(ENABLE_PNETCDF), yes)
+OMP_NEW_OBJ_GCC    += pnetcdf_io.o
+endif
+
+omp_new_main_gcc.o: omp_new_main.c $(H_FILES)
+	gcc $(CFLAGS) -fopenmp -o omp_new_main_gcc.o -c omp_new_main.c
+
+omp_new_kmeans_gcc.o: omp_new_kmeans.c $(H_FILES)
+	gcc $(CFLAGS) -fopenmp -o omp_new_kmeans_gcc.o -c omp_new_kmeans.c
+
+omp_new_gcc: omp_new_main_gcc
+omp_new_main_gcc: $(OMP_NEW_OBJ_GCC)
+	gcc $(LDFLAGS) -fopenmp -o $@ $(OMP_NEW_OBJ_GCC) $(LIBS) file_io.o util.o
 
 IMAGE_FILES =   color100.txt   color17695.bin   color17695.nc \
                  edge100.txt    edge17695.bin    edge17695.nc \

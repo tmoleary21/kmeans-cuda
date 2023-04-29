@@ -141,68 +141,59 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
         delta = 0.0;
 
         if (is_perform_atomic) {
-            float* distArray = (float*)calloc(numClusters, sizeof(float));
-            #pragma omp parallel for \
-                    private(i,j,index) \
-                    firstprivate(numObjs,numClusters,numCoords) \
-                    shared(objects,clusters,membership,newClusters,newClusterSize) \
-                    schedule(static) \
-                    reduction(+:delta)
-            for (i=0; i<numObjs; i++) {
-                /* find the array index of nestest cluster center */
-                // index = find_nearest_cluster(numClusters, numCoords, objects[i], clusters);
-                float min_dist;
+            float* distArray;
+            #pragma omp parallel\
+                private(i,j,index,distArray) \
+                firstprivate(numObjs,numClusters,numCoords) \
+                shared(objects,clusters,membership,newClusters,newClusterSize)
+            {
+                distArray = (float*)malloc(numClusters*sizeof(float));
+                #pragma omp for schedule(static) reduction(+:delta)
+                for (i=0; i<numObjs; i++) {
+                    float min_dist;
 
-                /* find the cluster id that has min distance to object */
-                index    = 0;
-                min_dist = INT_MAX;
+                    /* find the cluster id that has min distance to object */
+                    index    = 0;
+                    min_dist = INT_MAX;
+                    int k = 0;
 
-                // for (int j=0; j<numClusters; j++) {
-                //     // dist = euclid_dist_2(numCoords, objects[i], clusters[j]);
-                //     dist = 0.0;
-                //     for (int k=0; k<numCoords; k++)
-                //         dist += (objects[i][k]-clusters[j][k]) * (objects[i][k]-clusters[j][k]);
-
-                //     /* no need square root */
-                //     if (dist < min_dist) { /* find the min and its array index */
-                //         min_dist = dist;
-                //         index    = j;
-                //     }
-                // }
-                // float* distArray = (float*)calloc(numClusters, sizeof(float));
-                for (int k=0; k<numCoords; k++) {
-                    // dist = euclid_dist_2(numCoords, objects[i], clusters[j]);
-                    // dist = 0.0;
-
+                    int current_object_coord = objects[i][k];
                     for (int j=0; j<numClusters; j++){
-                        if (k == 0){
-                            distArray[j] = (objects[i][k]-clusters[j][k]) * (objects[i][k]-clusters[j][k]);
-                        } else {
-                            distArray[j] += (objects[i][k]-clusters[j][k]) * (objects[i][k]-clusters[j][k]);
-                        }
-                        /* no need square root */
+                        distArray[j] = (current_object_coord-clusters[j][k]) * (current_object_coord-clusters[j][k]);
+
                         if (k == numCoords-1 && distArray[j] < min_dist) { /* find the min and its array index */
                             min_dist = distArray[j];
                             index    = j;
                         }
                     }
-                }
-                // free(distArray);
 
-                /* if membership changes, increase delta by 1 */
-                if (membership[i] != index) delta += 1.0;
+                    for (k=1; k<numCoords; k++) {
+                        current_object_coord = objects[i][k];
+                        for (int j=0; j<numClusters; j++){
+                            distArray[j] += (current_object_coord - clusters[j][k]) * (current_object_coord - clusters[j][k]);
+                            
+                            if (k == numCoords-1 && distArray[j] < min_dist) { /* find the min and its array index */
+                                min_dist = distArray[j];
+                                index    = j;
+                            }
+                        }
+                    }
 
-                /* assign the membership to object i */
-                membership[i] = index;
+                    /* if membership changes, increase delta by 1 */
+                    if (membership[i] != index) delta += 1.0;
 
-                /* update new cluster centers : sum of objects located within */
-                #pragma omp atomic
-                newClusterSize[index]++;
-                for (j=0; j<numCoords; j++)
+                    /* assign the membership to object i */
+                    membership[i] = index;
+
+                    /* update new cluster centers : sum of objects located within */
                     #pragma omp atomic
-                    newClusters[index][j] += objects[i][j];
+                    newClusterSize[index]++;
+                    for (j=0; j<numCoords; j++)
+                        #pragma omp atomic
+                        newClusters[index][j] += objects[i][j];
+                }
+                free(distArray);
             }
-            free(distArray);
         }
         else {
             #pragma omp parallel \
