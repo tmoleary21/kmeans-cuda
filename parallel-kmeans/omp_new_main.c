@@ -59,6 +59,26 @@ static void usage(char *argv0, float threshold) {
     exit(-1);
 }
 
+
+static void transpose(float*** array, int xdim, int ydim){
+    float** newArray = (float**) malloc(xdim * sizeof(float*));
+    newArray[0] = (float*) malloc(xdim * ydim * sizeof(float));
+    for(int i = 1; i < xdim; i++)
+        newArray[i] = newArray[i-1] + ydim;
+
+    float** oldArray = *array;
+    for(int i = 0; i < ydim; i++){
+        for(int j = 0; j < xdim; j++){
+            newArray[j][i] = oldArray[i][j];
+        }
+    }
+
+    free(oldArray[0]);
+    free(oldArray);
+    *array = newArray;
+}
+
+
 /*---< main() >---------------------------------------------------------------*/
 int main(int argc, char **argv) {
            int     opt;
@@ -206,6 +226,34 @@ int main(int argc, char **argv) {
             printf("\n");
         }
     }
+
+    // Added code -----------------------------------------------------
+    // TRANSPOSE THE MATRICES
+    // Allows accessing the elements along rows instead of down columns
+
+    transpose(&objects, numCoords, numObjs);
+
+    // for(int i = 0; i < numCoords; i++){
+    //     for(int j = 0; j < numObjs; j++){
+    //         printf("%f ", objects[i][j]);
+    //     }
+    //     printf("\n");
+    // }
+
+    // return 1;
+
+    transpose(&clusters, numCoords, numClusters);
+
+    // for(int i = 0; i < numCoords; i++){
+    //     for(int j = 0; j < numClusters; j++){
+    //         printf("%f ", clusters[i][j]);
+    //     }
+    //     printf("\n");
+    // }
+
+    // return 1;
+
+    // ----------------------------------------------------------------
 
     if (is_output_timing) {
         timing            = omp_get_wtime();

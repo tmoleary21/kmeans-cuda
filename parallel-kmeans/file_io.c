@@ -244,7 +244,7 @@ int file_write(char      *filename,     /* input file name */
     for (i=0; i<numClusters; i++) {
         fprintf(fptr, "%d ", i);
         for (j=0; j<numCoords; j++)
-            fprintf(fptr, "%f ", clusters[i][j]);
+            fprintf(fptr, "%f ", clusters[j][i]);
         fprintf(fptr, "\n");
     }
     fclose(fptr);
