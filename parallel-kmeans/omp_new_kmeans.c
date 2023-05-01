@@ -142,8 +142,6 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
         delta = 0.0;
 
         if (is_perform_atomic) {
-            // printf("Entered if(is_perform_atomic)\n");
-            // fflush(stdout);
             float* distArray;
             #pragma omp parallel\
                 private(i,j,index,distArray) \
@@ -153,8 +151,6 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
                 distArray = (float*)malloc(numClusters*sizeof(float));
                 #pragma omp for schedule(static) reduction(+:delta)
                 for (i=0; i<numObjs; i++) {
-                    // printf("i=%d\n", i);
-                    // fflush(stdout);
                     float min_dist;
 
                     /* find the cluster id that has min distance to object */
@@ -162,56 +158,37 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
                     min_dist = INT_MAX;
                     int k = 0;
 
-                    int current_object_coord = objects[k][i];
+                    int current_object_coord = objects[i][k];
                     for (int j=0; j<numClusters; j++){
                         distArray[j] = (current_object_coord-clusters[k][j]) * (current_object_coord-clusters[k][j]);
+                    }
 
-                        if (k == numCoords-1 && distArray[j] < min_dist) { /* find the min and its array index */
+                    for (k=1; k<numCoords; k++) {
+                        current_object_coord = objects[i][k];
+                        for (int j=0; j<numClusters; j++){
+                            distArray[j] += (current_object_coord - clusters[k][j]) * (current_object_coord - clusters[k][j]);
+                        }
+                    }
+
+                    for (int j=0; j<numClusters; j++){
+                        if (distArray[j] < min_dist) { /* find the min and its array index */
                             min_dist = distArray[j];
                             index    = j;
                         }
                     }
 
-                    // printf("Passed k=0 loop\n");
-                    // fflush(stdout);
-
-                    for (k=1; k<numCoords; k++) {
-                        current_object_coord = objects[k][i];
-                        for (int j=0; j<numClusters; j++){
-                            distArray[j] += (current_object_coord - clusters[k][j]) * (current_object_coord - clusters[k][j]);
-                            
-                            if (k == numCoords-1 && distArray[j] < min_dist) { /* find the min and its array index */
-                                min_dist = distArray[j];
-                                index    = j;
-                            }
-                        }
-                    }
-
-                    // printf("Passed rest of k/j loop\n");
-                    // fflush(stdout);
-
                     /* if membership changes, increase delta by 1 */
                     if (membership[i] != index) delta += 1.0;
 
-                    // printf("a\n");
-                    // fflush(stdout);
                     /* assign the membership to object i */
                     membership[i] = index;
-                    printf("Membership for object %d is %d\n",i,index);
-                    // fflush(stdout);
 
                     /* update new cluster centers : sum of objects located within */
-                    // printf("a\n");
-                    // fflush(stdout);
                     #pragma omp atomic
                     newClusterSize[index]++;
-                    // printf("a\n");
-                    // fflush(stdout);
                     for (j=0; j<numCoords; j++)
                         #pragma omp atomic
-                        newClusters[j][index] += objects[j][i];
-                    // printf("Passed atomic loop\n");
-                    // fflush(stdout);
+                        newClusters[j][index] += objects[i][j];
                 }
                 free(distArray);
             }

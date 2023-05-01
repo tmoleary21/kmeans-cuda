@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
     // TRANSPOSE THE MATRICES
     // Allows accessing the elements along rows instead of down columns
 
-    transpose(&objects, numCoords, numObjs);
+    // transpose(&objects, numCoords, numObjs);
 
     // for(int i = 0; i < numCoords; i++){
     //     for(int j = 0; j < numObjs; j++){
