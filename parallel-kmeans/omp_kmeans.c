@@ -140,12 +140,12 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
         delta = 0.0;
 
         if (is_perform_atomic) {
-            #pragma omp parallel for \
-                    private(i,j,index) \
-                    firstprivate(numObjs,numClusters,numCoords) \
-                    shared(objects,clusters,membership,newClusters,newClusterSize) \
-                    schedule(static) \
-                    reduction(+:delta)
+            // #pragma omp parallel for \
+            //         private(i,j,index) \
+            //         firstprivate(numObjs,numClusters,numCoords) \
+            //         shared(objects,clusters,membership,newClusters,newClusterSize) \
+            //         schedule(static) \
+            //         reduction(+:delta)
             for (i=0; i<numObjs; i++) {
                 /* find the array index of nestest cluster center */
                 index = find_nearest_cluster(numClusters, numCoords, objects[i],
@@ -163,6 +163,10 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
                 for (j=0; j<numCoords; j++)
                     #pragma omp atomic
                     newClusters[index][j] += objects[i][j];
+
+                printf("%d\n", index);
+                if(i == 10)
+                break;
             }
         }
         else {

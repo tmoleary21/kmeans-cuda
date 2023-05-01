@@ -143,13 +143,13 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
 
         if (is_perform_atomic) {
             float* distArray;
-            #pragma omp parallel\
-                private(i,j,index,distArray) \
-                firstprivate(numObjs,numClusters,numCoords) \
-                shared(objects,clusters,membership,newClusters,newClusterSize)
+            // #pragma omp parallel\
+            //     private(i,j,index,distArray) \
+            //     firstprivate(numObjs,numClusters,numCoords) \
+            //     shared(objects,clusters,membership,newClusters,newClusterSize)
             {
                 distArray = (float*)malloc(numClusters*sizeof(float));
-                #pragma omp for schedule(static) reduction(+:delta)
+                // #pragma omp for schedule(static) reduction(+:delta)
                 for (i=0; i<numObjs; i++) {
                     float min_dist;
 
@@ -189,6 +189,10 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
                     for (j=0; j<numCoords; j++)
                         #pragma omp atomic
                         newClusters[j][index] += objects[i][j];
+
+                    printf("%d\n", index);
+                    if(i == 10)
+                    break;
                 }
                 free(distArray);
             }
