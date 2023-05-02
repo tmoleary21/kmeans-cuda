@@ -37,9 +37,10 @@ float euclid_dist_2(int    numdims,  /* no. dimensions */
     float ans=0.0;
 
     for (i=0; i<numdims; i++)
+    // i=0;
         ans += (coord1[i]-coord2[i]) * (coord1[i]-coord2[i]);
-
-    return(ans);
+    // printf("%d\n", ans);
+    return ans;
 }
 
 /*----< find_nearest_cluster() >---------------------------------------------*/
@@ -55,9 +56,12 @@ int find_nearest_cluster(int     numClusters, /* no. clusters */
     /* find the cluster id that has min distance to object */
     index    = 0;
     min_dist = euclid_dist_2(numCoords, object, clusters[0]);
+    // printf("%d\n", min_dist);
 
     for (i=1; i<numClusters; i++) {
+        // i=1
         dist = euclid_dist_2(numCoords, object, clusters[i]);
+        // printf("%d\n", dist);
         /* no need square root */
         if (dist < min_dist) { /* find the min and its array index */
             min_dist = dist;
@@ -164,9 +168,9 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
                     #pragma omp atomic
                     newClusters[index][j] += objects[i][j];
 
-                printf("%d\n", index);
-                if(i == 10)
-                break;
+                // printf("%d\n", index);
+                // if(i == 0)
+                // break;
             }
         }
         else {
@@ -222,7 +226,7 @@ int omp_kmeans(int     is_perform_atomic, /* in: */
         }
             
         delta /= numObjs;
-    } while (delta > threshold && loop++ < 500);
+    } while (delta > threshold && loop++ < 500); //500
 
     if (_debug) {
         timing = omp_get_wtime() - timing;
