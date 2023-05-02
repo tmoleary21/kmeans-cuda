@@ -181,7 +181,7 @@ dist:
 	&& rm -rf $$dist_dir
 
 clean:
-	rm -rf *.o omp_main seq_main mpi_main \
+	rm -rf *.o omp_main seq_main mpi_main omp_new_main omp_new_main_gcc\
 		bin2nc core* .make.state              \
 		*.cluster_centres *.membership \
 		*.cluster_centres.nc *.membership.nc \
