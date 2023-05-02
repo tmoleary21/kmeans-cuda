@@ -228,30 +228,11 @@ int main(int argc, char **argv) {
     }
 
     // Added code -----------------------------------------------------
-    // TRANSPOSE THE MATRICES
-    // Allows accessing the elements along rows instead of down columns
-
-    // transpose(&objects, numCoords, numObjs);
-
-    // for(int i = 0; i < numCoords; i++){
-    //     for(int j = 0; j < numObjs; j++){
-    //         printf("%f ", objects[i][j]);
-    //     }
-    //     printf("\n");
-    // }
-
-    // return 1;
+    // TRANSPOSE THE CLUSTERS MATRIX
+    // Allows accessing the elements along rows instead of down columns.
+    // Better cache locality and allows vectorization
 
     transpose(&clusters, numCoords, numClusters);
-
-    // for(int i = 0; i < numCoords; i++){
-    //     for(int j = 0; j < numClusters; j++){
-    //         printf("%f ", clusters[i][j]);
-    //     }
-    //     printf("\n");
-    // }
-
-    // return 1;
 
     // ----------------------------------------------------------------
 
