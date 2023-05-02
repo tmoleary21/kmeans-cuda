@@ -14,7 +14,7 @@
 
 .KEEP_STATE:
 
-all: seq omp mpi cuda
+all: seq omp mpi omp_new omp_new_gcc
 
 ENABLE_PNETCDF = no
 PNETCDF_DIR    = $(HOME)/PnetCDF
@@ -24,7 +24,7 @@ OMPCC          = gcc
 MPICC          = mpicc
 
 INCFLAGS    = -I.
-OPTFLAGS    = -O2 -DNDEBUG
+OPTFLAGS    = -O3 -DNDEBUG
 LDFLAGS     = $(OPTFLAGS)
 
 ifeq ($(ENABLE_PNETCDF), yes)
@@ -122,27 +122,45 @@ seq: seq_main
 seq_main: $(SEQ_OBJ) $(H_FILES)
 	$(CC) $(LDFLAGS) -o $@ $(SEQ_OBJ) $(LIBS)
 
-#------   cuda version -----------------------------------------
-CUDA_SRC     = cuda_main.c   \
-              cuda_kmeans.c \
-	      wtime.c
+#------   OpenMP NEW version -----------------------------------------
+OMP_NEW_SRC     = omp_new_main.c \
+	      omp_new_kmeans.c
 
-CUDA_OBJ     = $(CUDA_SRC:%.c=%.o) $(COMM_SRC:%.c=%.o)
+OMP_NEW_OBJ     = omp_new_main.o omp_new_kmeans.o
 
-$(CUDA_OBJ): $(H_FILES)
+ifeq ($(ENABLE_PNETCDF), yes)
+OMP_NEW_OBJ    += pnetcdf_io.o
+endif
 
-cuda_main.o: cuda_main.c $(H_FILES)
-	$(CC) $(CFLAGS) -c $*.c
+omp_new_main.o: omp_new_main.c $(H_FILES)
+	icc $(CFLAGS) -qopenmp -c $*.c
 
-cuda_kmeans.o: cuda_kmeans.c $(H_FILES)
-	$(CC) $(CFLAGS) -c $*.c
+omp_new_kmeans.o: omp_new_kmeans.c $(H_FILES)
+	icc $(CFLAGS) -qopenmp -c $*.c
 
-wtime.o: wtime.c
-	$(CC) $(CFLAGS) -c $*.c
+omp_new: omp_new_main
+omp_new_main: $(OMP_NEW_OBJ)
+	icc $(LDFLAGS) -qopenmp -o $@ $(OMP_NEW_OBJ) $(LIBS) file_io.o util.o
 
-cuda: cuda_main
-cuda_main: $(CUDA_OBJ) $(H_FILES)
-	$(CC) $(LDFLAGS) -o $@ $(CUDA_OBJ) $(LIBS)
+#------   OpenMP NEW GCC version -----------------------------------------
+OMP_NEW_SRC_GCC     = omp_new_main.c \
+	      omp_new_kmeans.c
+
+OMP_NEW_OBJ_GCC     = omp_new_main_gcc.o omp_new_kmeans_gcc.o
+
+ifeq ($(ENABLE_PNETCDF), yes)
+OMP_NEW_OBJ_GCC    += pnetcdf_io.o
+endif
+
+omp_new_main_gcc.o: omp_new_main.c $(H_FILES)
+	gcc $(CFLAGS) -fopenmp -o omp_new_main_gcc.o -c omp_new_main.c
+
+omp_new_kmeans_gcc.o: omp_new_kmeans.c $(H_FILES)
+	gcc $(CFLAGS) -fopenmp -o omp_new_kmeans_gcc.o -c omp_new_kmeans.c
+
+omp_new_gcc: omp_new_main_gcc
+omp_new_main_gcc: $(OMP_NEW_OBJ_GCC)
+	gcc $(LDFLAGS) -fopenmp -o $@ $(OMP_NEW_OBJ_GCC) $(LIBS) file_io.o util.o
 
 IMAGE_FILES =   color100.txt   color17695.bin   color17695.nc \
                  edge100.txt    edge17695.bin    edge17695.nc \
