@@ -14,7 +14,7 @@
 
 .KEEP_STATE:
 
-all: seq omp mpi omp_new omp_new_gcc
+all: seq omp omp_new omp_new_gcc
 
 ENABLE_PNETCDF = no
 PNETCDF_DIR    = $(HOME)/PnetCDF
@@ -69,36 +69,6 @@ omp_kmeans.o: omp_kmeans.c $(H_FILES)
 omp: omp_main
 omp_main: $(OMP_OBJ)
 	$(OMPCC) $(LDFLAGS) $(OMPFLAGS) -o $@ $(OMP_OBJ) $(LIBS)
-
-#------   MPI version -----------------------------------------
-MPI_SRC     = mpi_main.c   \
-              mpi_kmeans.c \
-              mpi_io.c
-
-ifeq ($(ENABLE_PNETCDF), yes)
-MPI_SRC    += pnetcdf_io.c
-endif
-
-MPI_OBJ     = $(MPI_SRC:%.c=%.o) $(COMM_SRC:%.c=%.o)
-
-mpi_main.o: mpi_main.c $(H_FILES)
-	$(MPICC) $(CFLAGS) -c $*.c
-
-mpi_kmeans.o: mpi_kmeans.c $(H_FILES)
-	$(MPICC) $(CFLAGS) -c $*.c
-
-mpi_io.o: mpi_io.c $(H_FILES)
-	$(MPICC) $(CFLAGS) -c $*.c
-
-pnetcdf_io.o: pnetcdf_io.c $(H_FILES)
-	$(MPICC) $(CFLAGS) -c $*.c
-
-mpi: mpi_main
-mpi_main: $(MPI_OBJ) $(H_FILES)
-	$(MPICC) $(LDFLAGS) -o $@ $(MPI_OBJ) $(LIBS)
-
-bin2nc: bin2nc.c
-	$(MPICC) $(CFLAGS) $(LDFLAGS) $< -o $@ $(LIBS)
 
 #------   sequential version -----------------------------------------
 SEQ_SRC     = seq_main.c   \
