@@ -1,5 +1,7 @@
 Parallel K-Means Data Clustering
 
+For our version, use omp_new_main with the Intel ICC Compiler.
+
 The software package of parallel K-means data clustering contains the 
 followings:
 
